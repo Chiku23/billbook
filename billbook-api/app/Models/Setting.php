@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\ResolvesPublicUrl;
 use Illuminate\Database\Eloquent\Model;
 
 class Setting extends Model
 {
+    use ResolvesPublicUrl;
     protected $fillable = [
         'theme',
         'company_name',
@@ -35,11 +37,7 @@ class Setting extends Model
 
     public function getLogoUrlAttribute(): ?string
     {
-        if (! $this->logo_path) {
-            return null;
-        }
-
-        return asset('storage/' . ltrim($this->logo_path, '/'));
+        return $this->resolvePublicStorageUrl($this->logo_path);
     }
 
     /**

@@ -1,14 +1,26 @@
+import type { ExpenseSummaryCategory } from '@/api/expenses'
 import { Card } from '@/components/ui'
+import { formatCurrency } from '@/lib/utils'
 
-const summaryItems = [
-  { label: 'Total', amount: '₹32,400' },
-  { label: 'Travel', amount: '₹12,000' },
-  { label: 'Software', amount: '₹8,500' },
-  { label: 'Office', amount: '₹6,200' },
-  { label: 'Other', amount: '₹5,700' },
-]
+interface ExpenseSummaryCardProps {
+  total: number
+  byCategory: ExpenseSummaryCategory[]
+  currency?: string
+}
 
-export function ExpenseSummaryCard() {
+export function ExpenseSummaryCard({
+  total,
+  byCategory,
+  currency = 'INR',
+}: ExpenseSummaryCardProps) {
+  const summaryItems = [
+    { label: 'Total', amount: formatCurrency(total, currency, 0) },
+    ...byCategory.slice(0, 4).map((item) => ({
+      label: item.category,
+      amount: formatCurrency(item.total, currency, 0),
+    })),
+  ]
+
   return (
     <Card className="overflow-hidden">
       <div className="flex flex-wrap items-center divide-y divide-slate-200 sm:divide-x sm:divide-y-0 dark:divide-slate-800">

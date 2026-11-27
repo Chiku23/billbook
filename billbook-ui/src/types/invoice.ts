@@ -33,6 +33,14 @@ export interface Document {
   isOverdue?: boolean
   clientId: string | null
   clientSnapshot: ClientSnapshot
+  client?: {
+    id: string
+    name: string
+    email: string
+    phone: string
+    address: string
+    taxId: string
+  } | null
   lineItems: LineItem[]
   subtotal?: number
   discountTotal?: number

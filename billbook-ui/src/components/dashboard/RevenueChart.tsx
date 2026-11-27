@@ -1,16 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui'
+import { formatCurrency } from '@/lib/utils'
+import type { MonthlyRevenuePoint } from '@/types'
 
-const placeholderRevenue = [
-  { month: 'Jun', revenue: 32000, label: '₹32k' },
-  { month: 'Jul', revenue: 44000, label: '₹44k' },
-  { month: 'Aug', revenue: 61000, label: '₹61k' },
-  { month: 'Sep', revenue: 48000, label: '₹48k' },
-  { month: 'Oct', revenue: 64000, label: '₹64k' },
-  { month: 'Nov', revenue: 55000, label: '₹55k' },
-]
+interface RevenueChartProps {
+  data: MonthlyRevenuePoint[]
+  currency: string
+}
 
-export function RevenueChart() {
-  const maxRevenue = Math.max(...placeholderRevenue.map((item) => item.revenue), 1)
+export function RevenueChart({ data, currency }: RevenueChartProps) {
+  const maxRevenue = Math.max(...data.map((item) => item.revenue), 1)
 
   return (
     <Card>
@@ -27,13 +25,21 @@ export function RevenueChart() {
           </div>
 
           <div className="relative z-10 flex h-full items-end justify-around gap-3 px-2">
-            {placeholderRevenue.map((item) => {
-              const heightPercent = Math.round((item.revenue / maxRevenue) * 100)
+            {data.map((item) => {
+              const heightPercent = item.revenue > 0 ? Math.max(6, Math.round((item.revenue / maxRevenue) * 100)) : 2
+              const formattedValue = formatCurrency(item.revenue, currency, 0)
+
               return (
-                <div key={item.month} className="group flex h-full flex-1 flex-col items-center justify-end gap-2">
-                  <div className="flex w-full flex-1 items-end justify-center">
+                <div
+                  key={item.monthKey}
+                  className="group flex h-full flex-1 flex-col items-center justify-end gap-2"
+                >
+                  <div className="flex w-full flex-1 flex-col items-center justify-end gap-1">
+                    <span className="opacity-0 text-[11px] font-medium tabular-nums text-slate-600 transition-opacity group-hover:opacity-100 dark:text-slate-300">
+                      {formattedValue}
+                    </span>
                     <div
-                      title={`${item.month}: ${item.label}`}
+                      title={`${item.label}: ${formattedValue}`}
                       style={{ height: `${heightPercent}%` }}
                       className="w-7 rounded-t bg-[#5b7db1] transition-opacity group-hover:opacity-85 sm:w-8"
                     />

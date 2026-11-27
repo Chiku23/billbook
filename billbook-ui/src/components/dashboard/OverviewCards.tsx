@@ -1,17 +1,24 @@
-import { Card, CardContent } from '@/components/ui'
 import { CurrencyDisplay } from '@/components/common'
+import { Card, CardContent } from '@/components/ui'
+import { formatCurrency } from '@/lib/utils'
+import type { DashboardOverview } from '@/types'
 
-const overviewItems = [
-  { label: 'Total Invoiced', amount: '₹2,45,000' },
-  { label: 'Total Paid', amount: '₹1,80,000' },
-  { label: 'Outstanding', amount: '₹65,000' },
-  { label: 'Expenses', amount: '₹32,400' },
-]
+interface OverviewCardsProps {
+  overview: DashboardOverview
+  currency: string
+}
 
-export function OverviewCards() {
+export function OverviewCards({ overview, currency }: OverviewCardsProps) {
+  const items = [
+    { label: 'Total Invoiced', amount: formatCurrency(overview.totalInvoiced, currency, 0) },
+    { label: 'Total Paid', amount: formatCurrency(overview.totalPaid, currency, 0) },
+    { label: 'Outstanding', amount: formatCurrency(overview.totalOutstanding, currency, 0) },
+    { label: 'Expenses', amount: formatCurrency(overview.totalExpenses, currency, 0) },
+  ]
+
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      {overviewItems.map((item) => (
+      {items.map((item) => (
         <Card key={item.label}>
           <CardContent className="p-5">
             <p className="text-sm font-medium text-slate-500 dark:text-slate-400">{item.label}</p>

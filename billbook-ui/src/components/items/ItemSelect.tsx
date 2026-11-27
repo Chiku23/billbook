@@ -1,12 +1,33 @@
 import { Select } from '@/components/ui'
+import { formatCurrency } from '@/lib/utils'
+import type { ItemTemplate } from '@/types'
 
-const itemOptions = [
-  { value: '', label: 'Select saved item...' },
-  { value: 'web-dev', label: 'Web Development (₹45,000 / project)' },
-  { value: 'logo', label: 'Logo Design (₹15,000 / unit)' },
-  { value: 'hosting', label: 'Hosting Setup (₹4,000 / unit)' },
-]
+interface ItemSelectProps {
+  items: ItemTemplate[]
+  currency?: string
+  onSelect: (item: ItemTemplate) => void
+}
 
-export function ItemSelect() {
-  return <Select name="itemTemplateId" defaultValue="" options={itemOptions} />
+export function ItemSelect({ items, currency = 'INR', onSelect }: ItemSelectProps) {
+  const options = [
+    { value: '', label: 'Insert saved item...' },
+    ...items.map((item) => ({
+      value: item.id,
+      label: `${item.name} (${formatCurrency(item.defaultRate, currency, 0)} / ${item.unit})`,
+    })),
+  ]
+
+  return (
+    <Select
+      name="itemTemplateId"
+      value=""
+      onChange={(e) => {
+        const selected = items.find((item) => item.id === e.target.value)
+        if (selected) {
+          onSelect(selected)
+        }
+      }}
+      options={options}
+    />
+  )
 }

@@ -1,61 +1,24 @@
 import { Link } from 'react-router-dom'
+import { CurrencyDisplay, StatusBadge } from '@/components/common'
 import {
   Card,
   CardHeader,
   CardTitle,
   Table,
-  TableHeader,
   TableBody,
-  TableRow,
-  TableHead,
   TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from '@/components/ui'
-import { CurrencyDisplay, StatusBadge } from '@/components/common'
-import type { InvoiceStatus } from '@/lib/constants'
+import { formatCurrency, formatDate } from '@/lib/utils'
+import type { RecentActivityItem } from '@/types'
 
-const recentRows: Array<{
-  id: string
-  number: string
-  client: string
-  date: string
-  status: InvoiceStatus
-  amount: string
-}> = [
-  {
-    id: 'INV-0042',
-    number: 'INV-0042',
-    client: 'Acme Solutions Pvt Ltd',
-    date: '25 Nov 2026',
-    status: 'paid',
-    amount: '₹78,470',
-  },
-  {
-    id: 'INV-0041',
-    number: 'INV-0041',
-    client: 'Nair Designs',
-    date: '18 Nov 2026',
-    status: 'sent',
-    amount: '₹42,000',
-  },
-  {
-    id: 'INV-0040',
-    number: 'INV-0040',
-    client: 'Kulkarni Labs',
-    date: '12 Nov 2026',
-    status: 'draft',
-    amount: '₹35,500',
-  },
-  {
-    id: 'INV-0039',
-    number: 'INV-0039',
-    client: 'Jaipur Craft Co',
-    date: '02 Nov 2026',
-    status: 'overdue',
-    amount: '₹29,000',
-  },
-]
+interface RecentActivityProps {
+  rows: RecentActivityItem[]
+}
 
-export function RecentActivity() {
+export function RecentActivity({ rows }: RecentActivityProps) {
   return (
     <Card className="overflow-hidden">
       <CardHeader>
@@ -64,7 +27,7 @@ export function RecentActivity() {
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">
-            <TableHead>Invoice ID</TableHead>
+            <TableHead>Document #</TableHead>
             <TableHead>Client</TableHead>
             <TableHead>Date</TableHead>
             <TableHead>Status</TableHead>
@@ -72,23 +35,38 @@ export function RecentActivity() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {recentRows.map((row) => (
-            <TableRow key={row.id}>
-              <TableCell className="font-medium text-slate-900 dark:text-slate-100">
-                <Link to={`/invoices/${row.id}`} className="hover:text-blue-600 hover:underline">
-                  {row.number}
-                </Link>
-              </TableCell>
-              <TableCell>{row.client}</TableCell>
-              <TableCell className="text-slate-500 dark:text-slate-400">{row.date}</TableCell>
-              <TableCell>
-                <StatusBadge status={row.status} />
-              </TableCell>
-              <TableCell className="text-right font-medium text-slate-900 dark:text-slate-100">
-                <CurrencyDisplay amount={row.amount} />
+          {rows.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={5} className="py-8 text-center text-slate-500 dark:text-slate-400">
+                No recent documents found.
               </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            rows.map((row) => {
+              const targetPath =
+                row.type === 'quote' ? `/quotes/${row.id}` : `/invoices/${row.id}`
+
+              return (
+                <TableRow key={row.id}>
+                  <TableCell className="font-medium text-slate-900 dark:text-slate-100">
+                    <Link to={targetPath} className="hover:text-blue-600 hover:underline">
+                      {row.number}
+                    </Link>
+                  </TableCell>
+                  <TableCell>{row.clientName}</TableCell>
+                  <TableCell className="text-slate-500 dark:text-slate-400">
+                    {formatDate(row.issueDate)}
+                  </TableCell>
+                  <TableCell>
+                    <StatusBadge status={row.status} />
+                  </TableCell>
+                  <TableCell className="text-right font-medium text-slate-900 dark:text-slate-100">
+                    <CurrencyDisplay amount={formatCurrency(row.grandTotal, row.currency, 0)} />
+                  </TableCell>
+                </TableRow>
+              )
+            })
+          )}
         </TableBody>
       </Table>
     </Card>

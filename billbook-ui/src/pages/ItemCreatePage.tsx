@@ -1,10 +1,34 @@
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
+import { createItem, type ItemPayload } from '@/api/items'
+import { ItemForm } from '@/components/items/ItemForm'
 import { PageContainer } from '@/components/layout'
 import { Card, CardContent } from '@/components/ui'
-import { ItemForm } from '@/components/items/ItemForm'
+import { getApiErrorMessage, getApiFieldErrors } from '@/lib/api'
 
 export function ItemCreatePage() {
+  const navigate = useNavigate()
+  const [saving, setSaving] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string[]>>({})
+  const [formError, setFormError] = useState<string | null>(null)
+
+  const handleCreate = async (payload: ItemPayload) => {
+    setSaving(true)
+    setErrors({})
+    setFormError(null)
+
+    try {
+      await createItem(payload)
+      navigate('/items')
+    } catch (err) {
+      setErrors(getApiFieldErrors(err))
+      setFormError(getApiErrorMessage(err, 'Failed to create item template.'))
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
     <PageContainer title="Add Item">
       <div className="max-w-2xl space-y-4">
@@ -17,7 +41,13 @@ export function ItemCreatePage() {
         </Link>
         <Card>
           <CardContent>
-            <ItemForm cancelTo="/items" />
+            <ItemForm
+              onSubmit={handleCreate}
+              cancelTo="/items"
+              saving={saving}
+              errors={errors}
+              formError={formError}
+            />
           </CardContent>
         </Card>
       </div>

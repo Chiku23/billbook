@@ -1,9 +1,14 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Search } from 'lucide-react'
+import { Plus, Search, Users } from 'lucide-react'
+import { deleteClient, getClients } from '@/api/clients'
+import { ClientListItem } from '@/components/clients/ClientListItem'
+import { ConfirmDialog, EmptyState } from '@/components/common'
 import { PageContainer } from '@/components/layout'
 import {
   Button,
   Card,
+  CardContent,
   Input,
   Table,
   TableBody,
@@ -11,66 +16,54 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui'
-import { ClientListItem, type ClientListRow } from '@/components/clients/ClientListItem'
-
-const placeholderClients: ClientListRow[] = [
-  {
-    id: '1',
-    initials: 'AS',
-    name: 'Aarav Sharma',
-    email: 'aarav.sharma@techvista.in',
-    phone: '+91 98201 45321',
-    totalInvoiced: '₹1,45,000',
-    lastInvoiceDate: '14 Nov 2026',
-  },
-  {
-    id: '2',
-    initials: 'PN',
-    name: 'Priya Nair',
-    email: 'priya@nairdesigns.co.in',
-    phone: '+91 99452 78104',
-    totalInvoiced: '₹85,000',
-    lastInvoiceDate: '08 Nov 2026',
-  },
-  {
-    id: '3',
-    initials: 'RK',
-    name: 'Rohan Kulkarni',
-    email: 'rohan.k@kulkarnilabs.in',
-    phone: '+91 97650 33219',
-    totalInvoiced: '₹2,10,500',
-    lastInvoiceDate: '02 Nov 2026',
-  },
-  {
-    id: '4',
-    initials: 'AI',
-    name: 'Ananya Iyer',
-    email: 'ananya@iyerconsulting.in',
-    phone: '+91 98409 11876',
-    totalInvoiced: '₹62,000',
-    lastInvoiceDate: '25 Oct 2026',
-  },
-  {
-    id: '5',
-    initials: 'VS',
-    name: 'Vikram Singh',
-    email: 'vikram@jaipurcraft.com',
-    phone: '+91 98290 65432',
-    totalInvoiced: '₹1,18,000',
-    lastInvoiceDate: '18 Oct 2026',
-  },
-  {
-    id: '6',
-    initials: 'MD',
-    name: 'Meera Deshmukh',
-    email: 'meera@deshmukhmedia.in',
-    phone: '+91 98220 90415',
-    totalInvoiced: '₹48,500',
-    lastInvoiceDate: '05 Oct 2026',
-  },
-]
+import { getApiErrorMessage } from '@/lib/api'
+import type { Client } from '@/types'
 
 export function ClientListPage() {
+  const [clients, setClients] = useState<Client[]>([])
+  const [search, setSearch] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [clientToDelete, setClientToDelete] = useState<Client | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+
+    getClients({ search: search || undefined })
+      .then((data) => {
+        if (!cancelled) {
+          setClients(data)
+          setError(null)
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setError(getApiErrorMessage(err, 'Failed to load clients.'))
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [search])
+
+  const handleConfirmDelete = async () => {
+    if (!clientToDelete) return
+    try {
+      await deleteClient(clientToDelete.id)
+      setClients((prev) => prev.filter((item) => item.id !== clientToDelete.id))
+      setClientToDelete(null)
+    } catch (err) {
+      setError(getApiErrorMessage(err, 'Failed to delete client.'))
+      setClientToDelete(null)
+    }
+  }
+
   return (
     <PageContainer
       title="Clients"
@@ -86,29 +79,79 @@ export function ClientListPage() {
       <div className="space-y-4">
         <Input
           placeholder="Search clients..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
           leftIcon={<Search className="h-4 w-4" />}
         />
 
-        <Card className="overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Total Invoiced</TableHead>
-                <TableHead>Last Invoice Date</TableHead>
-                <TableHead className="w-24" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {placeholderClients.map((client) => (
-                <ClientListItem key={client.id} client={client} />
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
+        {error && (
+          <Card>
+            <CardContent className="text-sm text-red-600 dark:text-red-400">{error}</CardContent>
+          </Card>
+        )}
+
+        {loading ? (
+          <Card>
+            <CardContent className="text-sm text-slate-500 dark:text-slate-400">
+              Loading clients...
+            </CardContent>
+          </Card>
+        ) : clients.length === 0 ? (
+          <EmptyState
+            icon={<Users className="h-5 w-5" />}
+            title="No clients found"
+            description={
+              search
+                ? 'No clients match your search query.'
+                : 'Add your first client to pre-fill invoices and quotes.'
+            }
+            action={
+              !search && (
+                <Link to="/clients/new">
+                  <Button>
+                    <Plus className="h-4 w-4" />
+                    Add Client
+                  </Button>
+                </Link>
+              )
+            }
+          />
+        ) : (
+          <Card className="overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>Total Invoiced</TableHead>
+                  <TableHead>Last Invoice Date</TableHead>
+                  <TableHead className="w-28" />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {clients.map((client) => (
+                  <ClientListItem
+                    key={client.id}
+                    client={client}
+                    onDelete={setClientToDelete}
+                  />
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        )}
       </div>
+
+      <ConfirmDialog
+        open={clientToDelete !== null}
+        onClose={() => setClientToDelete(null)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Client"
+        description={`Delete ${clientToDelete?.name ?? 'this client'}? Existing invoices will keep their client snapshot.`}
+        confirmLabel="Delete"
+        destructive
+      />
     </PageContainer>
   )
 }

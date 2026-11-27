@@ -42,6 +42,7 @@ return [
             'driver' => 'local',
             'root' => storage_path('app/public'),
             'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
+            'relative_urls' => (bool) env('STORAGE_RELATIVE_URLS', false),
             'visibility' => 'public',
             'throw' => false,
             'report' => false,

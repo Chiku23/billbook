@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasStringId;
+use App\Models\Concerns\ResolvesPublicUrl;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Expense extends Model
 {
-    use HasFactory, HasStringId;
+    use HasFactory, HasStringId, ResolvesPublicUrl;
 
     public const CATEGORIES = [
         'Travel',
@@ -46,11 +47,7 @@ class Expense extends Model
 
     public function getReceiptUrlAttribute(): ?string
     {
-        if (! $this->receipt_path) {
-            return null;
-        }
-
-        return asset('storage/' . ltrim($this->receipt_path, '/'));
+        return $this->resolvePublicStorageUrl($this->receipt_path);
     }
 
     public function scopeForMonth(Builder $query, ?string $month): Builder

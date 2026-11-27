@@ -1,17 +1,37 @@
 import { Select } from '@/components/ui'
-
-const clientOptions = [
-  { value: '1', label: 'Acme Solutions Pvt Ltd' },
-  { value: '2', label: 'Priya Nair' },
-  { value: '3', label: 'Rohan Kulkarni' },
-  { value: '4', label: 'Ananya Iyer' },
-]
+import type { Client } from '@/types'
 
 interface ClientSelectProps {
+  clients: Client[]
+  value: string
+  onChange: (clientId: string) => void
   label?: string
-  defaultValue?: string
+  error?: string
 }
 
-export function ClientSelect({ label = 'Client', defaultValue = '1' }: ClientSelectProps) {
-  return <Select label={label} name="clientId" defaultValue={defaultValue} options={clientOptions} />
+export function ClientSelect({
+  clients,
+  value,
+  onChange,
+  label = 'Client',
+  error,
+}: ClientSelectProps) {
+  const options = [
+    { value: '', label: 'Select a client...' },
+    ...clients.map((client) => ({
+      value: client.id,
+      label: client.email ? `${client.name} (${client.email})` : client.name,
+    })),
+  ]
+
+  return (
+    <Select
+      label={label}
+      name="clientId"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      options={options}
+      error={error}
+    />
+  )
 }

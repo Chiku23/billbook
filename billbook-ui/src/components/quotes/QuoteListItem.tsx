@@ -1,24 +1,19 @@
 import { Link } from 'react-router-dom'
 import { Eye, Pencil, Trash2 } from 'lucide-react'
-import { TableCell, TableRow } from '@/components/ui'
 import { CurrencyDisplay, StatusBadge } from '@/components/common'
+import { TableCell, TableRow } from '@/components/ui'
 import type { QuoteStatus } from '@/lib/constants'
-
-export interface QuoteListRow {
-  id: string
-  number: string
-  clientName: string
-  issueDate: string
-  validUntil: string
-  status: QuoteStatus
-  amount: string
-}
+import { formatCurrency, formatDate } from '@/lib/utils'
+import type { Document } from '@/types'
 
 interface QuoteListItemProps {
-  quote: QuoteListRow
+  quote: Document
+  onDelete: (quote: Document) => void
 }
 
-export function QuoteListItem({ quote }: QuoteListItemProps) {
+export function QuoteListItem({ quote, onDelete }: QuoteListItemProps) {
+  const clientName = quote.client?.name || quote.clientSnapshot.name || 'Walk-in Client'
+
   return (
     <TableRow>
       <TableCell className="font-medium text-slate-900 dark:text-slate-100">
@@ -26,14 +21,18 @@ export function QuoteListItem({ quote }: QuoteListItemProps) {
           {quote.number}
         </Link>
       </TableCell>
-      <TableCell>{quote.clientName}</TableCell>
-      <TableCell className="text-slate-500 dark:text-slate-400">{quote.issueDate}</TableCell>
-      <TableCell className="text-slate-500 dark:text-slate-400">{quote.validUntil}</TableCell>
+      <TableCell>{clientName}</TableCell>
+      <TableCell className="text-slate-500 dark:text-slate-400">
+        {formatDate(quote.issueDate)}
+      </TableCell>
+      <TableCell className="text-slate-500 dark:text-slate-400">
+        {formatDate(quote.validUntil)}
+      </TableCell>
       <TableCell>
-        <StatusBadge status={quote.status} />
+        <StatusBadge status={quote.status as QuoteStatus} />
       </TableCell>
       <TableCell className="text-right font-medium text-slate-900 dark:text-slate-100">
-        <CurrencyDisplay amount={quote.amount} />
+        <CurrencyDisplay amount={formatCurrency(quote.grandTotal ?? 0, quote.currency, 0)} />
       </TableCell>
       <TableCell>
         <div className="flex items-center justify-end gap-1">
@@ -53,6 +52,7 @@ export function QuoteListItem({ quote }: QuoteListItemProps) {
           </Link>
           <button
             type="button"
+            onClick={() => onDelete(quote)}
             aria-label={`Delete ${quote.number}`}
             className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-red-600 dark:hover:bg-slate-800 cursor-pointer"
           >
