@@ -72,26 +72,24 @@ An invoice, quote, client, item template, and expense management React UI design
 
 ```
 src/
-├── app/
-│   ├── App.tsx
-│   └── routes.tsx
+├── App.tsx                 # Router setup, top-level state, and routes
+├── main.tsx                # Application entry point
+├── pages/                  # Route pages (DashboardPage, InvoiceListPage, SettingsPage, ...)
 ├── components/
 │   ├── ui/                 # Button, Card, Input, Select, Textarea, Table, Tabs, Modal, Badge
+│   ├── common/             # StatusBadge, CurrencyDisplay, EmptyState, ConfirmDialog
 │   ├── layout/             # RootLayout, Sidebar, Header, PageContainer
-│   └── common/             # StatusBadge, CurrencyDisplay, EmptyState, ConfirmDialog
-├── features/
 │   ├── dashboard/          # OverviewCards, RevenueChart, ExpenseChart, RecentActivity
 │   ├── invoices/           # InvoiceForm, InvoiceLineItems, InvoiceListItem, InvoicePreview
 │   ├── quotes/             # QuoteForm, QuoteListItem, QuotePreview
-│   ├── clients/            # ClientForm, ClientListItem, ClientSelect, Detail/Create/Edit pages
-│   ├── items/              # ItemForm, ItemListItem, ItemSelect, List/Create/Edit pages
-│   ├── expenses/           # ExpenseForm, ExpenseListItem, ExpenseSummaryCard, List/Create/Edit pages
-│   ├── settings/           # BusinessProfileForm, DefaultsForm, ThemeToggle, SettingsPage
-│   └── backup/             # BackupPage
+│   ├── clients/            # ClientForm, ClientListItem, ClientSelect
+│   ├── items/              # ItemForm, ItemListItem, ItemSelect
+│   ├── expenses/           # ExpenseForm, ExpenseListItem, ExpenseSummaryCard
+│   └── settings/           # BusinessProfileForm, DefaultsForm, ThemeToggle
+├── types/                  # TypeScript interfaces matching billbook-api responses
 ├── lib/
 │   ├── constants.ts
 │   └── utils.ts
-├── styles/
-│   └── globals.css
-└── main.tsx
+└── styles/
+    └── globals.css
 ```
